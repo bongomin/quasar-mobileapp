@@ -20,11 +20,35 @@ jobs:
       # Checkout the repository code
       - uses: actions/checkout@v3
 
-      # Run Qodana scan with custom .qodana.yml configuration
+      # Create .qodana.yml dynamically with the configuration
+      - name: Create .qodana.yml
+        run: |
+          echo "version: \"1.0\"" > .qodana.yml
+          echo "linter: jetbrains/qodana-js:2024.3-community" >> .qodana.yml
+          echo "profile:" >> .qodana.yml
+          echo "  name: qodana.recommended" >> .qodana.yml
+          echo "include:" >> .qodana.yml
+          echo "  - name: EsLint" >> .qodana.yml
+          echo "  - name: CheckDependencyLicenses" >> .qodana.yml
+          echo "exclude:" >> .qodana.yml
+          echo "  - node_modules/" >> .qodana.yml
+          echo "  - dist/" >> .qodana.yml
+          echo "  - coverage/" >> .qodana.yml
+          echo "output:" >> .qodana.yml
+          echo "  html:" >> .qodana.yml
+          echo "    enabled: true" >> .qodana.yml
+          echo "    path: ./qodana-report/" >> .qodana.yml
+          echo "  json:" >> .qodana.yml
+          echo "    enabled: true" >> .qodana.yml
+          echo "    path: ./qodana-report/results.json" >> .qodana.yml
+          echo "timeout: 60" >> .qodana.yml
+          echo "strictness: \"high\"" >> .qodana.yml
+
+      # Run Qodana scan with the dynamically created .qodana.yml configuration
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2024.3
         with:
-          config-file: .qodana.yml  # Path to your custom Qodana configuration file
+          config-file: .qodana.yml  # Use the dynamically created .qodana.yml
 
       # Clean up after scan
       - name: Clean up
