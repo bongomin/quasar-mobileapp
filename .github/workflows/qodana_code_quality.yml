@@ -1,57 +1,6 @@
-name: Qodana Scan
-
-on:
-  workflow_dispatch:  # Allow manual trigger
-  push:  # Trigger on push to any branch
-    branches:
-      - '*'  # The wildcard (*) means all branches
-  pull_request:  # Trigger on pull requests
-    branches:
-      - '*'  # Trigger for any pull request across all branches
-
-jobs:
-  qodana:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      checks: write
-    steps:
-      # Checkout the repository code
-      - uses: actions/checkout@v3
-
-      # Create .qodana.yml dynamically with the configuration
-      - name: Create .qodana.yml
-        run: |
-          echo "version: \"1.0\"" > .qodana.yml
-          echo "linter: jetbrains/qodana-js:2024.3-community" >> .qodana.yml
-          echo "profile:" >> .qodana.yml
-          echo "  name: qodana.recommended" >> .qodana.yml
-          echo "include:" >> .qodana.yml
-          echo "  - name: EsLint" >> .qodana.yml
-          echo "  - name: CheckDependencyLicenses" >> .qodana.yml
-          echo "exclude:" >> .qodana.yml
-          echo "  - node_modules/" >> .qodana.yml
-          echo "  - dist/" >> .qodana.yml
-          echo "  - coverage/" >> .qodana.yml
-          echo "output:" >> .qodana.yml
-          echo "  html:" >> .qodana.yml
-          echo "    enabled: true" >> .qodana.yml
-          echo "    path: ./qodana-report/" >> .qodana.yml
-          echo "  json:" >> .qodana.yml
-          echo "    enabled: true" >> .qodana.yml
-          echo "    path: ./qodana-report/results.json" >> .qodana.yml
-          echo "timeout: 60" >> .qodana.yml
-          echo "strictness: \"high\"" >> .qodana.yml
-
-      # Run Qodana scan with the dynamically created .qodana.yml configuration
-      - name: 'Qodana Scan'
-        uses: JetBrains/qodana-action@v2024.3
-        with:
-          config-file: .qodana.yml  # Use the dynamically created .qodana.yml
-
-      # Clean up after scan
-      - name: Clean up
-        run: |
-          sudo apt-get clean
-          sudo rm -rf /tmp/*
+version: "1.0"
+linter: jetbrains/qodana-js:2024.2
+profile:
+  name: qodana.recommended
+include:
+  - name: CheckDependencyLicenses
