@@ -1,6 +1,51 @@
-version: "1.0"
-linter: jetbrains/qodana-js:2024.2
-profile:
-  name: qodana.recommended
-include:
-  - name: CheckDependencyLicenses
+name: Qodana Scan
+
+# Trigger conditions
+on:
+  workflow_dispatch:  # Allows manual trigger
+  push:  # Trigger on push to any branch
+    branches:
+      - '*'  # The wildcard (*) means all branches
+  pull_request:  # Trigger on pull requests
+    branches:
+      - '*'  # Trigger for any pull request across all branches
+
+jobs:
+  qodana:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu runner for the job
+    permissions:
+      contents: write  # Allow write access to the repository content
+      pull-requests: write  # Allow write access for pull requests
+      checks: write  # Allow write access for checks (for reporting results)
+
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v3
+
+      # Run Qodana scan directly with the community version configuration
+      - name: 'Qodana Scan'
+        uses: JetBrains/qodana-action@v2024.3
+        with:
+          linter: jetbrains/qodana-js:2024.3-community  # Use community version for no token requirement
+          profile: "qodana.recommended"
+          include: |
+            - name: CheckDependencyLicenses
+          exclude: |
+            - node_modules/
+            - dist/
+            - coverage/
+          output: |
+            html:
+              enabled: true
+              path: ./qodana-report/
+            json:
+              enabled: true
+              path: ./qodana-report/results.json
+          timeout: 60
+          strictness: "high"
+
+      # Clean up after scan
+      - name: Clean up
+        run: |
+          sudo apt-get clean
+          sudo rm -rf /tmp/*
