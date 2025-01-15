@@ -1,35 +1,33 @@
-version: "1.0"
-linter: jetbrains/qodana-js:2024.3
+name: Qodana Scan
 
-# Define the profile you want to use
-profile:
-  name: qodana.recommended  # You can switch this to another profile like 'qodana.strict' if needed
+on:
+  workflow_dispatch:  # Allow manual trigger
+  push:  # Trigger on push to any branch
+    branches:
+      - '*'  # The wildcard (*) means all branches
+  pull_request:  # Trigger on pull requests
+    branches:
+      - '*'  # Trigger for any pull request across all branches
 
-# Specify checks to include in the scan
-include:
-  - name: EsLint  # This is for JavaScript linting using ESLint
-  - name: CheckDependencyLicenses  # Check if dependencies are licensed correctly
+jobs:
+  qodana:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      # Checkout the repository code
+      - uses: actions/checkout@v3
 
-# Optional: Define which files or directories to exclude from the scan
-exclude:
-  - node_modules/  # Typically exclude the node_modules directory as it's not part of your source code
-  - dist/  # Exclude distribution files or build directories
-  - coverage/  # Exclude test coverage reports or results
+      # Run Qodana scan with custom .qodana.yml configuration
+      - name: 'Qodana Scan'
+        uses: JetBrains/qodana-action@v2024.3
+        with:
+          config-file: .qodana.yml  # Path to your custom Qodana configuration file
 
-output:
-  html:
-    enabled: true  # Enable HTML report generation
-    path: ./qodana-report/  # Directory to store the HTML report
-  json:
-    enabled: true  # Enable JSON report generation
-    path: ./qodana-report/results.json  # Path for JSON output
-
-# Optional: Set the level of strictness for the analysis
-strictness: "high"  # Options could be "low", "medium", or "high" depending on your preference
-
-# Optional: Set a timeout for the analysis, useful for large projects
-timeout: 60  # Timeout in minutes (default is 30 minutes)
-
-# Optional: Enable or disable specific checks
-disable:
-  - CheckCodeSmells  # Disable this specific check if you don't need it
+      # Clean up after scan
+      - name: Clean up
+        run: |
+          sudo apt-get clean
+          sudo rm -rf /tmp/*
