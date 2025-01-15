@@ -22,11 +22,20 @@ jobs:
       # Checkout the repository code
       - uses: actions/checkout@v3
 
+      # Cache Qodana results to speed up the scan (optional but recommended)
+      - name: Cache Qodana scan results
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/qodana
+          key: ${{ runner.os }}-qodana-${{ hashFiles('**/*.js') }}
+          restore-keys: |
+            ${{ runner.os }}-qodana-
+
       # Run Qodana scan directly with the community version configuration
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2024.3
         with:
-          linter: jetbrains/qodana-js:2024.3-community  # Use community version for no token requirement
+          linter: jetbrains/qodana-js:2024.3-community  # Community version for no token requirement
           profile: "qodana.recommended"
           include: |
             - name: CheckDependencyLicenses
